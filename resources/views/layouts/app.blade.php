@@ -5,57 +5,61 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'OfficeKormi') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- Scripts & Styles (Bootstrap 5 via app.css) -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- FontAwesome 6 -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+        @stack('styles')
     </head>
     <body class="bg-light">
         
-        <!-- Bootstrap Navigation Bar -->
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm border-bottom">
             <div class="container">
-                <!-- Logo -->
-                <a class="navbar-brand" href="{{ route('dashboard') }}">
-                    <x-application-logo width="36" height="36" class="d-inline-block align-text-top" />
+                <a class="navbar-brand d-flex align-items-center" href="{{ route('dashboard') }}">
+                    <x-application-logo width="36" height="36" class="d-inline-block align-text-top me-2" />
+                    <span class="fw-bold fs-5 text-dark">{{ config('app.name', 'OfficeKormi') }}</span>
                 </a>
                 
-                <!-- Hamburger Menu for Mobile -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active fw-semibold text-primary' : '' }}" href="{{ route('dashboard') }}">
                                 {{ __('Dashboard') }}
                             </a>
                         </li>
-                        <!-- ভবিষ্যতে এখানে অন্যান্য মেনু আইটেম যোগ হবে -->
                     </ul>
 
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto align-items-center">
                         <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle fw-medium" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 {{ Auth::user()->name }}
                             </a>
 
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <div class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="navbarDropdown">
+                                <h6 class="dropdown-header small text-muted text-truncate" style="max-width: 200px;">
+                                    {{ Auth::user()->email }}
+                                </h6>
+                                <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                     {{ __('Profile') }}
                                 </a>
 
-                                <!-- Authentication -->
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="dropdown-item">
+                                    <button type="submit" class="dropdown-item text-danger">
                                         {{ __('Log Out') }}
                                     </button>
                                 </form>
@@ -66,23 +70,23 @@
             </div>
         </nav>
 
-        <!-- Page Heading -->
-        @isset($header)
-            <header class="bg-white shadow-sm mb-4">
+        <!-- Header Section -->
+        @hasSection('header')
+            <header class="bg-white shadow-sm border-bottom">
                 <div class="container py-3">
-                    <h2 class="h4 mb-0 text-gray-800">
-                        {{ $header }}
-                    </h2>
+                    @yield('header')
                 </div>
             </header>
-        @endisset
+        @endif
 
-        <!-- Page Content -->
-        <main class="container pb-5">
-            {{ $slot }}
+        <!-- Main Content (সঠিক সিনট্যাক্স) -->
+        <main class="container py-4">
+            @yield('content')
         </main>
 
-        <!-- Bootstrap JS is already imported in resources/js/app.js -->
+        <!-- Bootstrap 5 JS Bundle -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> 
+
+        @stack('scripts')
     </body>
 </html>

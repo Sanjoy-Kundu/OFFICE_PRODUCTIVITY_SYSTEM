@@ -7,34 +7,36 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
+        <!-- Google Fonts (ঐচ্ছিক) -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- Scripts & Styles (Bootstrap 5 via app.css) -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     </head>
-    <body class="bg-light font-sans antialiased">
-        
-        <!-- Center alignment using Bootstrap Flexbox classes -->
-        <div class="min-vh-100 d-flex flex-column justify-content-center align-items-center pt-5 pt-sm-0">
-            
-            {{-- 
-               ==========================================================
-               মূল পরিবর্তন এখানে:
-               লোগোর এই পুরো ব্লকটি ( <div class="mb-4"> ... </div> ) 
-               মুছে ফেলা হয়েছে অথবা কমেন্ট আউট করা হয়েছে।
-               ফলে এখন সরাসরি লগইন কার্ডটি পেজের মাঝখানে দেখাবে।
-               ==========================================================
-            --}}
+    <body class="bg-light">
+        <div class="min-vh-100 d-flex flex-column justify-content-center align-items-center py-4 px-3">
+            <!-- App Logo -->
+            <div class="mb-3">
+                <a href="/">
+                    <x-application-logo width="55" height="55" />
+                </a>
+            </div>
 
-            <!-- Content Card -->
-            <div class="w-100" style="max-width: 400px;">
-                <div class="card shadow-sm border-0 rounded-lg p-4">
+            <!-- Login / Auth Card Box -->
+            <div class="card shadow-sm border-0 w-100" style="max-width: 430px; border-radius: 12px;">
+                <div class="card-body p-4 p-sm-5">
                     {{ $slot }}
                 </div>
             </div>
+
+            <!-- Footer (ঐচ্ছিক) -->
+            <div class="text-center mt-4 text-muted small">
+                &copy; {{ date('Y') }} {{ config('app.name', 'OfficeKormi') }}. সর্বস্বত্ব সংরক্ষিত।
+            </div>
         </div>
 
+        <!-- Bootstrap 5 JS Bundle -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
