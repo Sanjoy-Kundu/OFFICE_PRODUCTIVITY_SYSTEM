@@ -2,7 +2,6 @@
     <div class="container">
         <!-- Logo -->
         <a class="navbar-brand" href="{{ route('dashboard') }}">
-            <x-application-logo width="30" height="30" class="d-inline-block align-top" />
             {{ config('app.name', 'OfficeKormi') }}
         </a>
 
