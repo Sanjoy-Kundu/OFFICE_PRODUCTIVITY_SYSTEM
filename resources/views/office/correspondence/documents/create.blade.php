@@ -226,7 +226,7 @@
         
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="fw-bold text-success mb-0">
-                <span class="badge bg-success me-2">১ম সেকশন</span> 🇧🇩 বাংলা দাপ্তরিক চিঠি ও স্মারক জেনারেটর
+                <span class="text-success me-2">১ম সেকশন</span> বাংলা দাপ্তরিক চিঠি ও স্মারক জেনারেটর
             </h4>
             <div class="d-flex gap-2">
                 <button type="button" id="copyBtn" class="btn btn-primary btn-sm shadow-xs px-3" onclick="copyLetterToClipboard()">
@@ -240,7 +240,7 @@
 
         <!-- কপি সাকসেস অ্যালার্ট (বাংলা) -->
         <div id="copyAlert" class="alert alert-success d-none alert-dismissible fade show shadow-sm" role="alert">
-            <i class="fas fa-check-circle fa-lg me-2 text-success"></i> <strong>বাংলা চিঠি ফরম্যাটিং সহ কপি হয়েছে!</strong> MS Word বা ইমেইলে <b>Ctrl + V</b> চাপুন।
+            <i class="fas fa-check-circle fa-lg me-2 text-success"></i> <strong>বাংলা চিঠি ফরম্যাটিং সহ কপি হয়েছে!</strong> MS Word বা ইমেইলে <b>Ctrl + V</b> চাপুন। ওয়ার্ডে কোনো শব্দের মাঝে অনাকাঙ্ক্ষিত ফাঁকা তৈরি হবে না।
             <button type="button" class="btn-close" onclick="document.getElementById('copyAlert').classList.add('d-none')"></button>
         </div>
 
@@ -584,7 +584,7 @@
     <div class="section-divider-banner d-flex flex-wrap justify-content-between align-items-center my-5" id="englishSection">
         <div>
             <span class="badge bg-warning text-dark px-3 py-1 mb-2 fw-semibold">২য় সেকশন</span>
-            <h4 class="fw-bold mb-1">🇬🇧 Official English Letter & Memo Generator</h4>
+            <h4 class="fw-bold mb-1">Official English Letter & Memo Generator</h4>
             <p class="mb-0 small text-light opacity-75">Generate official letters in standard English Commonwealth/Bangladesh Govt format.</p>
         </div>
         <div class="d-flex gap-2 mt-3 mt-md-0">
@@ -605,7 +605,7 @@
 
         <!-- কপি সাকসেস অ্যালার্ট (English) -->
         <div id="copyAlertEn" class="alert alert-success d-none alert-dismissible fade show shadow-sm" role="alert">
-            <i class="fas fa-check-circle fa-lg me-2 text-success"></i> <strong>English Letter copied successfully with formatting!</strong> Paste into MS Word or Email with <b>Ctrl + V</b>.
+            <i class="fas fa-check-circle fa-lg me-2 text-success"></i> <strong>English Letter copied successfully with formatting!</strong> Paste into MS Word or Email with <b>Ctrl + V</b>. Words will flow naturally without extra gaps.
             <button type="button" class="btn-close" onclick="document.getElementById('copyAlertEn').classList.add('d-none')"></button>
         </div>
 
@@ -950,7 +950,7 @@
 @push('scripts')
 <script>
     // =========================================================================
-    // বাংলা সেকশন স্ক্রিপ্ট (BENGALI LOGIC)
+    // ১. বাংলা সেকশন স্ক্রিপ্ট (BENGALI LOGIC)
     // =========================================================================
     let currentFontSize = '11.5pt';
     let currentLineHeight = '1.8';
@@ -1154,6 +1154,34 @@
         updatePreview();
     }
 
+    // =========================================================================
+    // Word-এর জন্য এডিটেবল প্যারাগ্রাফ ক্লিন করার হেল্পার ফাংশন
+    // =========================================================================
+    function cleanHtmlForWord(rawHtml, align, fontSize, lineHeight) {
+        let temp = document.createElement('div');
+        temp.innerHTML = rawHtml;
+        
+        let paragraphs = temp.innerHTML.split(/<br\s*[\/]?>\s*<br\s*[\/]?>/gi);
+        let formatted = paragraphs.map(p => {
+            let clean = p.replace(/^(\s*<br\s*[\/]?>\s*)+|(\s*<br\s*[\/]?>\s*)+$/gi, '').trim();
+            if (!clean) return '';
+            return `<p style="margin-top: 0cm; margin-bottom: 12pt; text-align: ${align}; text-justify: inter-word; font-size: ${fontSize}; line-height: ${lineHeight}; mso-line-height-rule: exactly;">${clean}</p>`;
+        }).filter(p => p.length > 0).join('');
+
+        return formatted || `<p style="margin-top: 0cm; margin-bottom: 12pt; text-align: ${align}; text-justify: inter-word; font-size: ${fontSize}; line-height: ${lineHeight};">${rawHtml}</p>`;
+    }
+
+    function cleanCopiesForWord(rawHtml, align, fontSize, lineHeight) {
+        let temp = document.createElement('div');
+        temp.innerHTML = rawHtml;
+        let lines = temp.innerHTML.split(/<br\s*[\/]?>/gi);
+        return lines.map(line => {
+            let clean = line.trim();
+            if (!clean) return '';
+            return `<p style="margin-top: 0cm; margin-bottom: 3pt; text-align: ${align}; font-size: ${fontSize}; line-height: ${lineHeight};">${clean}</p>`;
+        }).filter(l => l.length > 0).join('');
+    }
+
     async function copyLetterToClipboard() {
         const copyBtnText = document.getElementById('copyBtnText');
         const copyAlert = document.getElementById('copyAlert');
@@ -1173,40 +1201,57 @@
         const subject = document.getElementById('inputSubject').value || '';
         const refLabel = document.getElementById('inputReferenceLabel').value || 'সূত্র:';
         const refVal = document.getElementById('inputReference').value || '';
-        const bodyHtml = document.getElementById('inputBody').innerHTML;
+        
+        const wordBodyHtml = cleanHtmlForWord(document.getElementById('inputBody').innerHTML, currentTextAlign, currentFontSize, currentLineHeight);
+        const wordCopiesHtml = cleanCopiesForWord(document.getElementById('inputCopies').innerHTML, currentCopiesTextAlign, currentCopiesFontSize, currentCopiesLineHeight);
+
         const signStatus = document.getElementById('inputSignStatus').value || '';
         const signerName = document.getElementById('inputSignerName').value || '';
         const signerTitle = document.getElementById('inputSignerTitle').value || '';
         const signerContact = document.getElementById('inputSignerContact').value || '';
         const copiesHeading = document.getElementById('inputCopiesHeading').value || '';
-        const copiesHtml = document.getElementById('inputCopies').innerHTML;
-        const refRow = (refVal.trim() !== '') ? `<div style="font-size: 11pt; color: #555; margin-top: 4px;">${refLabel} ${refVal}</div>` : '';
+
+        const refRow = (refVal.trim() !== '') ? `<p style="margin: 0; margin-bottom: 8pt; font-size: 11pt; color: #333;">${refLabel} ${refVal}</p>` : '';
 
         const wordFriendlyHTML = `
-            <div style="font-family: 'Nikosh', 'SolaimanLipi', 'Kalpurush', 'Times New Roman', Arial, sans-serif; font-size: 12pt; color: #000000; line-height: 1.6; max-width: 650px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <div style="font-size: 15pt; font-weight: bold;">${govtName}</div>
-                    <div style="font-size: 12pt; font-weight: bold; color: #222;">${ministry}</div>
-                    <div style="font-size: 11pt; color: #444;">${office}</div>
-                    <div style="font-size: 10pt; color: #666;">${website}</div>
+            <div style="font-family: 'Nikosh', 'SolaimanLipi', 'Kalpurush', 'Times New Roman', Arial, sans-serif; font-size: 12pt; color: #000000;">
+                <div style="text-align: center; margin-bottom: 20pt;">
+                    <p style="margin: 0; font-size: 15pt; font-weight: bold;">${govtName}</p>
+                    <p style="margin: 0; font-size: 12pt; font-weight: bold; color: #222;">${ministry}</p>
+                    <p style="margin: 0; font-size: 11pt; color: #444;">${office}</p>
+                    <p style="margin: 0; font-size: 10pt; color: #666;">${website}</p>
                 </div>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px; border-bottom: 1px solid #999; padding-bottom: 6px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 15pt; border-bottom: 1px solid #999; padding-bottom: 6px;">
                     <tr>
                         <td align="left" valign="top" style="font-size: 11pt;"><b>${memoLabel}</b> ${memo}</td>
                         <td align="right" valign="top" style="font-size: 11pt; text-align: right;"><div><b>${dateLabel}</b> ${dateBanglaStr}</div><div style="color: #444; font-size: 10pt;">${bangabdaDateStr}</div></td>
                     </tr>
                 </table>
-                <div style="margin-bottom: 18px; font-size: 12pt;">
-                    <div><b>${salutation}</b></div>
-                    <div style="font-weight: bold;">${recipient}</div>
-                    <div style="color: #444;">${recipientAddress}</div>
+                <div style="margin-bottom: 14pt; font-size: 12pt;">
+                    <p style="margin: 0; font-weight: bold;">${salutation}</p>
+                    <p style="margin: 0; font-weight: bold;">${recipient}</p>
+                    <p style="margin: 0; color: #444;">${recipientAddress}</p>
                 </div>
-                <div style="margin-bottom: 18px;"><div style="font-size: 12pt; font-weight: bold;"><u>${subjectLabel} ${subject}</u></div>${refRow}</div>
-                <div style="font-size: ${currentFontSize}; text-align: ${currentTextAlign}; line-height: ${currentLineHeight}; margin-bottom: 40px;">${bodyHtml}</div>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
-                    <tr><td width="60%"></td><td width="40%" align="center" style="text-align: center; font-size: 11pt;"><div style="color: #666; font-style: italic;">${signStatus}</div><div style="font-weight: bold; font-size: 12pt;">${signerName}</div><div style="color: #444;">${signerTitle}</div><div style="color: #555; font-size: 10pt;">${signerContact}</div></td></tr>
+                <div style="margin-bottom: 14pt;">
+                    <p style="margin: 0; font-size: 12pt; font-weight: bold;"><u>${subjectLabel} ${subject}</u></p>
+                    ${refRow}
+                </div>
+                ${wordBodyHtml}
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 25pt; margin-bottom: 25pt;">
+                    <tr>
+                        <td width="60%"></td>
+                        <td width="40%" align="center" style="text-align: center; font-size: 11pt;">
+                            <p style="margin: 0; color: #666; font-style: italic;">${signStatus}</p>
+                            <p style="margin: 0; font-weight: bold; font-size: 12pt;">${signerName}</p>
+                            <p style="margin: 0; color: #444;">${signerTitle}</p>
+                            <p style="margin: 0; color: #555; font-size: 10pt;">${signerContact}</p>
+                        </td>
+                    </tr>
                 </table>
-                <div style="border-top: 1px solid #aaa; padding-top: 10px; font-size: ${currentCopiesFontSize}; line-height: ${currentCopiesLineHeight}; color: #333; text-align: ${currentCopiesTextAlign};"><div style="font-weight: bold; margin-bottom: 4px;">${copiesHeading}</div><div>${copiesHtml}</div></div>
+                <div style="border-top: 1px solid #aaa; padding-top: 10px; font-size: ${currentCopiesFontSize}; color: #333;">
+                    <p style="margin: 0; margin-bottom: 5pt; font-weight: bold;">${copiesHeading}</p>
+                    ${wordCopiesHtml}
+                </div>
             </div>`;
 
         try {
@@ -1392,40 +1437,57 @@
         const subject = document.getElementById('inputSubjectEn').value || '';
         const refLabel = document.getElementById('inputReferenceLabelEn').value || 'Ref:';
         const refVal = document.getElementById('inputReferenceEn').value || '';
-        const bodyHtml = document.getElementById('inputBodyEn').innerHTML;
+        
+        const wordBodyHtmlEn = cleanHtmlForWord(document.getElementById('inputBodyEn').innerHTML, currentTextAlignEn, currentFontSizeEn, currentLineHeightEn);
+        const wordCopiesHtmlEn = cleanCopiesForWord(document.getElementById('inputCopiesEn').innerHTML, 'left', currentCopiesFontSizeEn, currentCopiesLineHeightEn);
+
         const signStatus = document.getElementById('inputSignStatusEn').value || '';
         const signerName = document.getElementById('inputSignerNameEn').value || '';
         const signerTitle = document.getElementById('inputSignerTitleEn').value || '';
         const signerContact = document.getElementById('inputSignerContactEn').value || '';
         const copiesHeading = document.getElementById('inputCopiesHeadingEn').value || '';
-        const copiesHtml = document.getElementById('inputCopiesEn').innerHTML;
-        const refRow = (refVal.trim() !== '') ? `<div style="font-size: 11pt; color: #555; margin-top: 4px;">${refLabel} ${refVal}</div>` : '';
+
+        const refRow = (refVal.trim() !== '') ? `<p style="margin: 0; margin-bottom: 8pt; font-size: 11pt; color: #555;">${refLabel} ${refVal}</p>` : '';
 
         const wordFriendlyHTML = `
-            <div style="font-family: 'Times New Roman', 'Calibri', Arial, sans-serif; font-size: 12pt; color: #000000; line-height: 1.5; max-width: 650px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <div style="font-size: 14pt; font-weight: bold;">${govtName}</div>
-                    <div style="font-size: 12pt; font-weight: bold; color: #222;">${ministry}</div>
-                    <div style="font-size: 11pt; color: #444;">${office}</div>
-                    <div style="font-size: 10pt; color: #666;">${website}</div>
+            <div style="font-family: 'Times New Roman', 'Calibri', Arial, sans-serif; font-size: 12pt; color: #000000;">
+                <div style="text-align: center; margin-bottom: 20pt;">
+                    <p style="margin: 0; font-size: 14pt; font-weight: bold;">${govtName}</p>
+                    <p style="margin: 0; font-size: 12pt; font-weight: bold; color: #222;">${ministry}</p>
+                    <p style="margin: 0; font-size: 11pt; color: #444;">${office}</p>
+                    <p style="margin: 0; font-size: 10pt; color: #666;">${website}</p>
                 </div>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px; border-bottom: 1px solid #999; padding-bottom: 6px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 15pt; border-bottom: 1px solid #999; padding-bottom: 6px;">
                     <tr>
                         <td align="left" valign="top" style="font-size: 11pt;"><b>${memoLabel}</b> ${memo}</td>
                         <td align="right" valign="top" style="font-size: 11pt; text-align: right;"><div><b>${dateLabel}</b> ${dateStr}</div></td>
                     </tr>
                 </table>
-                <div style="margin-bottom: 18px; font-size: 12pt;">
-                    <div><b>${salutation}</b></div>
-                    <div style="font-weight: bold;">${recipient}</div>
-                    <div style="color: #444;">${recipientAddress}</div>
+                <div style="margin-bottom: 14pt; font-size: 12pt;">
+                    <p style="margin: 0; font-weight: bold;">${salutation}</p>
+                    <p style="margin: 0; font-weight: bold;">${recipient}</p>
+                    <p style="margin: 0; color: #444;">${recipientAddress}</p>
                 </div>
-                <div style="margin-bottom: 18px;"><div style="font-size: 12pt; font-weight: bold;"><u>${subjectLabel} ${subject}</u></div>${refRow}</div>
-                <div style="font-size: ${currentFontSizeEn}; text-align: ${currentTextAlignEn}; line-height: ${currentLineHeightEn}; margin-bottom: 40px;">${bodyHtml}</div>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
-                    <tr><td width="60%"></td><td width="40%" align="center" style="text-align: center; font-size: 11pt;"><div style="color: #666; font-style: italic;">${signStatus}</div><div style="font-weight: bold; font-size: 12pt;">${signerName}</div><div style="color: #444;">${signerTitle}</div><div style="color: #555; font-size: 10pt;">${signerContact}</div></td></tr>
+                <div style="margin-bottom: 14pt;">
+                    <p style="margin: 0; font-size: 12pt; font-weight: bold;"><u>${subjectLabel} ${subject}</u></p>
+                    ${refRow}
+                </div>
+                ${wordBodyHtmlEn}
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 25pt; margin-bottom: 25pt;">
+                    <tr>
+                        <td width="60%"></td>
+                        <td width="40%" align="center" style="text-align: center; font-size: 11pt;">
+                            <p style="margin: 0; color: #666; font-style: italic;">${signStatus}</p>
+                            <p style="margin: 0; font-weight: bold; font-size: 12pt;">${signerName}</p>
+                            <p style="margin: 0; color: #444;">${signerTitle}</p>
+                            <p style="margin: 0; color: #555; font-size: 10pt;">${signerContact}</p>
+                        </td>
+                    </tr>
                 </table>
-                <div style="border-top: 1px solid #aaa; padding-top: 10px; font-size: ${currentCopiesFontSizeEn}; line-height: ${currentCopiesLineHeightEn}; color: #333;"><div style="font-weight: bold; margin-bottom: 4px;">${copiesHeading}</div><div>${copiesHtml}</div></div>
+                <div style="border-top: 1px solid #aaa; padding-top: 10px; font-size: ${currentCopiesFontSizeEn}; color: #333;">
+                    <p style="margin: 0; margin-bottom: 5pt; font-weight: bold;">${copiesHeading}</p>
+                    ${wordCopiesHtmlEn}
+                </div>
             </div>`;
 
         try {
@@ -1442,14 +1504,12 @@
         }
     }
 
-    // প্রিন্ট ফাংশন (যেকোনো একটি নির্দিষ্ট সেকশন প্রিন্ট করার জন্য)
     function printDocument(elementId) {
         document.querySelectorAll('.official-letter-paper').forEach(el => el.classList.remove('print-target'));
         document.getElementById(elementId).classList.add('print-target');
         window.print();
     }
 
-    // পেজ লোড হলে দুটি সেকশনেরই আজকের তারিখ ও প্রিভিউ চালু করা
     document.addEventListener('DOMContentLoaded', function () {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('inputDate').value = today;
